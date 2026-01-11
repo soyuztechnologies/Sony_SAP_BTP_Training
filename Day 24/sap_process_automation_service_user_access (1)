@@ -1,0 +1,21 @@
+#clientSecret=<< Existing password/certificate removed on export >>
+#
+#Tue May 27 05:03:18 UTC 2025
+tokenServiceURLType=Dedicated
+endpoints={     "api"\: "https\://spa-api-gateway-bpi-us-prod.cfapps.us10.hana.ondemand.com"   }
+Description=BPA Destination
+clientId=sb-5d03b3a9-65c5-4a42-b55f-d88a14e4e519\!b436221|xsuaa\!b49390
+MobileEnabled=true
+sap.cloud.service=com.sap.spa.processautomation
+tokenServiceURL=https\://3cdbc54etrial.authentication.us10.hana.ondemand.com/oauth/token
+URL=https\://spa-api-gateway-bpi-us-prod.cfapps.us10.hana.ondemand.com
+Name=sap_process_automation_service_user_access
+CEP.EnableCsrfProtection=true
+Type=HTTP
+html5-apps-repo={     "app_host_id"\: "906e0e53-e05b-4654-a999-30de519f64b4,179d989c-993e-4ad3-b6e0-9c24a37d3964,a5f2228f-0c59-4a49-b69f-565bd742ae72,84fbef19-3b70-4718-bf94-35d9f71408e2,ad4b900b-4bf1-4965-a6a6-d71ce7fc5300,ef90ed2e-b626-478d-9828-1c120e4fb1f5,9cd6ff5e-f33f-459e-90de-35e17719e6e1,1c356e52-9323-4038-a332-e817676a3409,3be0da62-2508-4691-8794-579a6dd30303,20d19ca7-2d8c-4b76-9335-9d94fd8ad8c8"   }
+HTML5.DynamicDestination=true
+Authentication=OAuth2JWTBearer
+sap.cloud.service.alias=spa
+AppgyverEnabled=true
+ProxyType=Internet
+saasregistryenabled=true
