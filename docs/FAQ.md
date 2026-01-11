@@ -128,7 +128,10 @@ Yes, SAP offers several certifications for BTP, including:
 - [openSAP](https://open.sap.com/)
 
 ### How long does it take to complete this training?
-The training is self-paced. Depending on your prior experience and time commitment, it typically takes 2-4 weeks to complete all modules.
+The training is self-paced. Depending on your prior experience, it typically takes:
+- **20-30 hours** total for hands-on learning
+- **2-4 weeks** if dedicating 5-10 hours per week
+- Complete faster with more time investment or slower at your own pace
 
 ## Support
 
