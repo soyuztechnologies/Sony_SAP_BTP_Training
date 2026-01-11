@@ -1,0 +1,10 @@
+---
+applications:
+- name: my-first-app
+  memory: 256M
+  instances: 1
+  buildpack: nodejs_buildpack
+  command: npm start
+  random-route: true
+  env:
+    NODE_ENV: production
