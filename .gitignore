@@ -1,0 +1,61 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# SAP Business Application Studio
+.che/
+gen/
+
+# Build outputs
+dist/
+build/
+*.mtar
+mta_archives/
+
+# Cloud Foundry
+.cfignore
+*.log
+
+# CAP specific
+_out/
+*.db
+default-*.json
+
+# HANA specific
+.hdiconfig
+*.hdbtabledata
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Credentials (never commit these!)
+credentials.json
+*-credentials.json
+private-key.json
