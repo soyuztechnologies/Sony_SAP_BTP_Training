@@ -1,0 +1,283 @@
+@AbapCatalog.sqlViewName: 'ZDXCABFIRST'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'First CDS View'
+@Metadata.ignorePropagatedAnnotations: true
+define view ZDXC_AB_FIRST as select from zats_ab_bpa
+{
+    key bp_id as BpId,
+    bp_role as BpRole,
+    company_name as CompanyName,
+    street as Street,
+    country as Country,
+    region as Region,
+    city as City
+} 
+ 
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Business partners CDS entity'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+    serviceQuality: #X,
+    sizeCategory: #S,
+    dataClass: #MIXED
+}
+define view entity ZDXC_AB_BPA
+ with parameters p_ctry: land1
+ as select from zats_ab_bpa
+{
+    key bp_id as BpId,
+    --cds expression language
+    case bp_role 
+        when '01' then 'Customer'
+        else 'Supplier' end
+    as BpRole,
+    company_name as CompanyName,
+    street as Street,
+    country as Country,
+    region as Region,
+    city as City
+} where country = $parameters.p_ctry
+
+
+
+CLASS zcl_dxc_ab_call_cds DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    INTERFACES if_oo_adt_classrun .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+
+CLASS zcl_dxc_ab_call_cds IMPLEMENTATION.
+
+
+  METHOD if_oo_adt_classrun~main.
+
+
+    select * from ZDXC_AB_BPA( p_ctry = 'US' ) into table
+    @data(itab).
+
+    ""Ctrl+Space and Shift+Enter to generate the code
+    out->write(
+      EXPORTING
+        data   = itab
+*        name   =
+*      RECEIVING
+*        output =
+    ).
+
+
+
+
+  ENDMETHOD.
+ENDCLASS.
+
+
+
+@AbapCatalog.viewEnhancementCategory: [#PROJECTION_LIST]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'View on view'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+    serviceQuality: #X,
+    sizeCategory: #S,
+    dataClass: #MIXED
+}
+@AbapCatalog.extensibility.extensible: true
+define view entity ZDXC_AB_VOV as select from ZDXC_AB_BPA( p_ctry : 'US' )
+{
+    key BpId,
+    BpRole,
+    CompanyName,
+    Street,
+    Region
+}
+
+
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Joining data using view'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+    serviceQuality: #X,
+    sizeCategory: #S,
+    dataClass: #MIXED
+}
+define view entity ZDXC_AB_JOIN as select from ZDXC_AB_BPA( p_ctry : 'US' ) as bpa
+inner join zats_ab_so_hdr as so on
+bpa.BpId = so.buyer
+{
+    key so.order_id as OrderId,
+    key bpa.BpId,
+    so.order_no as OrderNo,
+    so.buyer as Buyer,
+    @Semantics.amount.currencyCode: 'CurrencyCode'
+    so.gross_amount as GrossAmount,
+    so.currency_code as CurrencyCode,
+    bpa.CompanyName,
+    bpa.Country
+}
+
+
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Example for lose coupling'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+    serviceQuality: #X,
+    sizeCategory: #S,
+    dataClass: #MIXED
+}
+define view entity ZDXC_AB_ASSOCIATION as select from ZDXC_AB_BPA( p_ctry : 'US' ) as bpa
+///using association name starts with _ 
+association of one to many zats_ab_so_hdr as _Salesorder
+///using $projection refering to the field
+on $projection.BpId = _Salesorder.buyer
+{
+   key bpa.BpId,
+   bpa.BpRole,
+   bpa.CompanyName,
+   bpa.Street,
+   bpa.Country,
+   bpa.Region,
+   bpa.City,
+   //exposed association - dont apply the join upfront to load order data
+   //Similar to interative report in abap AT LINE selection
+   _Salesorder 
+}
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Aggregation'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+    serviceQuality: #X,
+    sizeCategory: #S,
+    dataClass: #MIXED
+}
+define view entity ZDXC_AB_AGG as select from ZDXC_AB_ASSOCIATION
+{
+    key CompanyName,
+    key Country,
+    key _Salesorder.currency_code as CurrencyCode,
+    @Semantics.amount.currencyCode: 'CurrencyCode'
+    sum( _Salesorder.gross_amount ) as TotalAmount    
+} group by CompanyName, Country, _Salesorder.currency_code
+ 
+
+
+@EndUserText.label: 'order status'
+define type zdxc_ab_status: abap.char( 2 ) enum {
+    undefined = initial;
+    @EndUserText.label: 'Approved'
+    approved = 'A';
+    @EndUserText.label: 'InProcess'
+    inprocess = 'I';
+    @EndUserText.label: 'Rejected'
+    rejected = 'R';
+}
+
+
+@ClientHandling.type: #CLIENT_DEPENDENT
+@AbapCatalog.deliveryClass: #APPLICATION_DATA
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'orders table'
+define table entity zdxc_ab_orders
+{
+  key order_id : abap.int1;
+      status: zdxc_ab_status;
+      
+}
+
+
+---------------------------------------------
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'private view product data'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+    serviceQuality: #X,
+    sizeCategory: #S,
+    dataClass: #MIXED
+}
+---warning : dont use this in your viws - ONLY Anubhav can reuse it
+@VDM.private: true
+---respresnts that its master data
+@Analytics.dataCategory: #DIMENSION
+define view entity ZP_DXC_AB_PRODUCT as select from zats_ab_product
+{
+    key product_id as ProductId,
+    name as Name,
+    category as Category    
+}
+
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Basic interface, Business partner'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+    serviceQuality: #X,
+    sizeCategory: #S,
+    dataClass: #MIXED
+}
+@VDM.viewType: #BASIC
+@Analytics.dataCategory: #DIMENSION
+define view entity ZI_DXC_AB_BPA as select from zats_ab_bpa
+{
+    key bp_id as BpId,
+    company_name as CompanyName,
+    country as Country
+}
+
+
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Sales View, Interface, basic'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+    serviceQuality: #X,
+    sizeCategory: #S,
+    dataClass: #MIXED
+}
+@VDM.viewType: #BASIC
+--represents the transactional data in prespective of analytics
+@Analytics.dataCategory: #FACT
+define view entity ZI_DXC_AB_SO as select from zats_ab_so_hdr as hdr
+inner join zats_ab_so_item as itm on
+hdr.order_id = itm.order_id
+{
+    key hdr.order_id as OrderId,
+    key itm.item_id as ItemId,
+    @Semantics.amount.currencyCode: 'CurrencyCode'
+    itm.amount as GrossAmount,
+    itm.currency as CurrencyCode,
+    @Semantics.quantity.unitOfMeasure: 'Unit'
+    itm.qty as Quantity,
+    itm.uom as Unit    
+    
+}
+
+
+
+

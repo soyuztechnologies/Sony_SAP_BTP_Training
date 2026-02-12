@@ -1,0 +1,101 @@
+
+@AbapCatalog.sqlViewName: 'zdxcXXISALES'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Sales Basic, interface'
+define view zdxc_XX_I_SALES as select from zdxc_xx_so_hdr as hdr 
+association[1] to zdxc_xx_so_item as _Items
+on $projection.OrderId = _Items.order_id
+association[1] to I_Currency as _Currency
+on $projection.CurrencyCode = _Currency.Currency
+{
+    key hdr.order_id as OrderId,
+    hdr.order_no as OrderNo,
+    hdr.buyer as Buyer,
+    hdr.currency_code as CurrencyCode,
+    _Items,
+    _Currency._Text[Language=$session.system_language].CurrencyShortName
+}
+
+
+
+@AbapCatalog.sqlViewName: 'zdxcXXIPRODUCT'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Basic, interface, Product Data'
+define view zdxc_XX_I_PRODUCT as select from zdxc_xx_product {
+    key product_id as ProductId,
+    name as Name,
+    category as Category,
+    price as Price,
+    currency as Currency,
+    discount as Discount
+}
+
+
+
+@AbapCatalog.sqlViewName: 'zdxcXXIBP'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Interface view, BP, master data, basic'
+define view zdxc_XX_I_BP as select from zdxc_xx_bpa as bpa 
+association[1] to I_Country as _Country on
+$projection.Country = _Country.Country
+{
+    key bp_id as BpId,
+    bp_role as BpRole,
+    company_name as CompanyName,
+    country as Country,
+    _Country._Text[Language= $session.system_language].CountryName as CountryName
+}
+
+
+
+
+
+@AbapCatalog.sqlViewName: 'zdxcXXCOSLSCUE'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Cube view, composition, master and transaction'
+define view zdxc_XX_CO_SALES_CUBE as select from zdxc_XX_I_SALES 
+association[1] to zdxc_XX_I_BP as _BusinessPartner
+on $projection.Buyer = _BusinessPartner.BpId
+association[1] to zdxc_XX_I_PRODUCT as _Products
+on $projection.Product = _Products.ProductId
+{
+  key zdxc_XX_I_SALES.OrderId,
+  key zdxc_XX_I_SALES._Items.item_id as ItemId,
+  zdxc_XX_I_SALES.OrderNo,
+  zdxc_XX_I_SALES.Buyer,
+  zdxc_XX_I_SALES.CurrencyCode,
+  zdxc_XX_I_SALES.CurrencyShortName,
+  /* Associations */
+  zdxc_XX_I_SALES._Items.product as Product,
+  zdxc_XX_I_SALES._Items.amount as GrossAmount,
+  zdxc_XX_I_SALES._Items.currency as Currency,
+  zdxc_XX_I_SALES._Items.qty as Quantity,
+  zdxc_XX_I_SALES._Items.uom as UnitOfMeasure,
+  _Products,
+  _BusinessPartner
+}
+
+
+
+@AbapCatalog.sqlViewName: 'zdxcXXCSLSCUST'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Customer wise total sales per currency'
+define view zdxc_XX_C_SLS_CUST as select from zdxc_XX_CO_SALES_CUBE {
+    _BusinessPartner.CompanyName as CompanyName,
+    _BusinessPartner.CountryName as CountryName,
+    GrossAmount as TotalSales,
+    Currency,
+    Quantity as TotalQty,
+    UnitOfMeasure
+}
+
