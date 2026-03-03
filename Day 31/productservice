@@ -1,0 +1,11 @@
+#
+#Fri Jan 24 16:06:36 UTC 2025
+Type=HTTP
+sap.applicationdevelopment.actions.enabled=true
+Description=shopping cart products
+sap.processautomation.enabled=true
+Authentication=NoAuthentication
+ProxyType=Internet
+URL=https\://services.odata.org/northwind/northwind.svc/
+Name=productservice
+sap.build.usage=odata_gen
